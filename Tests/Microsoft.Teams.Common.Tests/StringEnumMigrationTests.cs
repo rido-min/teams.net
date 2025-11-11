@@ -125,4 +125,67 @@ public class StringEnumMigrationTests
         Assert.Contains(DeliveryModeEnum.ExpectReplies, values);
         Assert.Contains(DeliveryModeEnum.Ephemeral, values);
     }
+
+    // Tests for StringEnumConverter with EnumStringValueAttribute
+    [JsonConverter(typeof(StringEnumConverter<EventTypeWithSpecialValues>))]
+    public enum EventTypeWithSpecialValues
+    {
+        Start,
+        Error,
+        [EnumStringValue("activity.sent")]
+        ActivitySent,
+        [EnumStringValue("activity.response")]
+        ActivityResponse,
+        [EnumStringValue("application/vnd.microsoft.test")]
+        SpecialMimeType
+    }
+
+    [Fact]
+    public void StringEnumConverter_WithDottedValues_Serializes()
+    {
+        var value = EventTypeWithSpecialValues.ActivitySent;
+        var json = JsonSerializer.Serialize(value);
+        
+        Assert.Equal("\"activity.sent\"", json);
+    }
+
+    [Fact]
+    public void StringEnumConverter_WithDottedValues_Deserializes()
+    {
+        var json = "\"activity.response\"";
+        var value = JsonSerializer.Deserialize<EventTypeWithSpecialValues>(json);
+        
+        Assert.Equal(EventTypeWithSpecialValues.ActivityResponse, value);
+    }
+
+    [Fact]
+    public void StringEnumConverter_WithoutAttribute_UsesCamelCase()
+    {
+        var value = EventTypeWithSpecialValues.Start;
+        var json = JsonSerializer.Serialize(value);
+        
+        // Start doesn't have EnumStringValue, so it uses camelCase
+        Assert.Equal("\"start\"", json);
+    }
+
+    [Fact]
+    public void StringEnumConverter_WithSlashes_Serializes()
+    {
+        var value = EventTypeWithSpecialValues.SpecialMimeType;
+        var json = JsonSerializer.Serialize(value);
+        
+        Assert.Equal("\"application/vnd.microsoft.test\"", json);
+    }
+
+    [Fact]
+    public void StringEnumConverter_InObject_Works()
+    {
+        var obj = new Dictionary<string, object>()
+        {
+            { "eventType", EventTypeWithSpecialValues.ActivitySent }
+        };
+
+        var json = JsonSerializer.Serialize(obj);
+        Assert.Equal("{\"eventType\":\"activity.sent\"}", json);
+    }
 }
