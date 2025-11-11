@@ -1,29 +1,34 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Text.Json.Serialization;
+
 using Microsoft.Teams.Common;
 
 namespace Microsoft.Teams.Apps.Events;
 
-public class EventType(string value) : StringEnum(value)
+[JsonConverter(typeof(StringEnumConverter<EventType>))]
+public enum EventType
 {
-    public static readonly EventType Start = new("start");
-    public bool IsStart => Start.Equals(Value);
+    Start,
+    Error,
+    SignIn,
+    Activity,
+    [EnumStringValue("activity.sent")]
+    ActivitySent,
+    [EnumStringValue("activity.response")]
+    ActivityResponse
+}
 
-    public static readonly EventType Error = new("error");
-    public bool IsError => Error.Equals(Value);
-
-    public static readonly EventType SignIn = new("signin");
-    public bool IsSignIn => SignIn.Equals(Value);
-
-    public static readonly EventType Activity = new("activity");
-    public bool IsActivity => Activity.Equals(Value);
-
-    public static readonly EventType ActivitySent = new("activity.sent");
-    public bool IsActivitySent => ActivitySent.Equals(Value);
-
-    public static readonly EventType ActivityResponse = new("activity.response");
-    public bool IsActivityResponse => ActivityResponse.Equals(Value);
-
-    public bool IsBuiltIn => IsStart || IsError || IsSignIn || IsActivity || IsActivitySent || IsActivityResponse;
+public static class EventTypeExtensions
+{
+    public static bool IsBuiltIn(this EventType eventType)
+    {
+        return eventType == EventType.Start 
+            || eventType == EventType.Error 
+            || eventType == EventType.SignIn 
+            || eventType == EventType.Activity 
+            || eventType == EventType.ActivitySent 
+            || eventType == EventType.ActivityResponse;
+    }
 }

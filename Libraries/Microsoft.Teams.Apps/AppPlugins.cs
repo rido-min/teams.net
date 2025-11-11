@@ -13,6 +13,23 @@ public partial class App
 {
     protected IList<IPlugin> Plugins { get; set; }
 
+    // Helper method to parse event names back to EventType enum
+    private static bool TryParseEventType(string name, out EventType eventType)
+    {
+        try
+        {
+            // Try to deserialize the string as an EventType using JSON
+            var json = System.Text.Json.JsonSerializer.Serialize(name);
+            eventType = System.Text.Json.JsonSerializer.Deserialize<EventType>($"\"{name}\"");
+            return true;
+        }
+        catch
+        {
+            eventType = default;
+            return false;
+        }
+    }
+
     public IPlugin? GetPlugin(string name)
     {
         return Plugins.SingleOrDefault(p => PluginService.GetAttribute(p).Name == name);
@@ -35,11 +52,10 @@ public partial class App
         // broadcast plugin events
         plugin.Events += async (plugin, name, @event, token) =>
         {
-            var eventType = new EventType(name);
-
             await Events.Emit(plugin, $"{attr.Name}.{name}", @event, token);
 
-            if (eventType.IsBuiltIn && !eventType.IsStart)
+            // Try to parse the event name as a built-in EventType
+            if (TryParseEventType(name, out var eventType) && eventType.IsBuiltIn() && eventType != EventType.Start)
             {
                 return await Events.Emit(plugin, name, @event, token);
             }
