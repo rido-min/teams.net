@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Teams.Apps.Plugins;
+using Microsoft.Teams.Common.Http;
 
 namespace Microsoft.Teams.Apps;
 
@@ -116,6 +117,6 @@ public partial class AppBuilder
 
     public App Build()
     {
-        return new App(_options);
+        return new App(_serviceProvider.GetService<IHttpCredentials>()!, _options);
     }
 }
