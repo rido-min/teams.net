@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../../.gitignore" />
+  </Folder>
+  <Project Path="../../Libraries/Microsoft.Teams.Api/Microsoft.Teams.Api.csproj" />
+  <Project Path="../../Libraries/Microsoft.Teams.Apps/Microsoft.Teams.Apps.csproj" />
+  <Project Path="../../Libraries/Microsoft.Teams.Cards/Microsoft.Teams.Cards.csproj" />
+  <Project Path="../../Libraries/Microsoft.Teams.Common/Microsoft.Teams.Common.csproj" />
+  <Project Path="../../Libraries/Microsoft.Teams.Extensions/Microsoft.Teams.Extensions.Configuration/Microsoft.Teams.Extensions.Configuration.csproj" />
+  <Project Path="../../Libraries/Microsoft.Teams.Extensions/Microsoft.Teams.Extensions.Hosting/Microsoft.Teams.Extensions.Hosting.csproj" />
+  <Project Path="../../Libraries/Microsoft.Teams.Extensions/Microsoft.Teams.Extensions.Logging/Microsoft.Teams.Extensions.Logging.csproj" />
+  <Project Path="../../Libraries/Microsoft.Teams.Plugins/Microsoft.Teams.Plugins.AspNetCore/Microsoft.Teams.Plugins.AspNetCore.csproj" />
+  <Project Path="Sample.Rido/Sample.Rido.csproj" />
+</Solution>

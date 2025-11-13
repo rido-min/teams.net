@@ -27,7 +27,7 @@ public class ActivityClient : Client
         ServiceUrl = serviceUrl;
     }
 
-    public ActivityClient(string serviceUrl, IHttpClientFactory factory, CancellationToken cancellationToken = default) : base(factory, cancellationToken)
+    public ActivityClient(string serviceUrl, Common.Http.IHttpClientFactory factory, CancellationToken cancellationToken = default) : base(factory, cancellationToken)
     {
         ServiceUrl = serviceUrl;
     }

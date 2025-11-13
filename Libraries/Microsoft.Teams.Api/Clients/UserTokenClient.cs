@@ -3,7 +3,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
+using IHttpClientFactory = Microsoft.Teams.Common.Http.IHttpClientFactory;
 using Microsoft.Teams.Common.Http;
 
 namespace Microsoft.Teams.Api.Clients;
