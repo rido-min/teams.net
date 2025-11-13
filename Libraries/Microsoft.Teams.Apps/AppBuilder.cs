@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Teams.Apps.Plugins;
 
 namespace Microsoft.Teams.Apps;
@@ -8,9 +9,17 @@ namespace Microsoft.Teams.Apps;
 public partial class AppBuilder
 {
     protected AppOptions _options;
+    private readonly IServiceProvider _serviceProvider;
+
+    public AppBuilder(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+        _options = new AppOptions();
+    }
 
     public AppBuilder(AppOptions? options = null)
     {
+        _serviceProvider = null!;
         _options = options ?? new AppOptions();
     }
 
@@ -55,6 +64,13 @@ public partial class AppBuilder
         _options.Client = @delegate().GetAwaiter().GetResult();
         return this;
     }
+
+    public AppBuilder AddCredentials<T>() where T : Common.Http.IHttpCredentials
+    {
+        _options.Credentials = _serviceProvider.GetRequiredService<T>();
+        return this;
+    }
+
 
     public AppBuilder AddCredentials(Common.Http.IHttpCredentials credentials)
     {
