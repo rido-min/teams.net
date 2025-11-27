@@ -122,6 +122,21 @@ public class HttpClientTests
         Assert.NotNull(httpClient.Options);
     }
 
+    [Fact]
+    public void HttpClient_DoubleDispose_ShouldNotThrow()
+    {
+        // Arrange
+        var httpClient = new Common.Http.HttpClient();
+        
+        // Act & Assert - double dispose should not throw
+        var exception = Record.Exception(() =>
+        {
+            httpClient.Dispose();
+            httpClient.Dispose();
+        });
+        Assert.Null(exception);
+    }
+
 
 
     public class MockHttpClient : Common.Http.HttpClient

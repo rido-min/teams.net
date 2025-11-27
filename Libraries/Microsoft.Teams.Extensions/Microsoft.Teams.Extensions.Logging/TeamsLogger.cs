@@ -31,9 +31,28 @@ public class TeamsLogger : ILogger, IDisposable
         _logger.Log(level.ToTeams(), formatter(state, exception));
     }
 
+    private bool _disposed;
+
     public void Dispose()
     {
-        // do nothing
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            // If the underlying logger implements IDisposable, dispose it
+            if (_logger is IDisposable disposableLogger)
+            {
+                disposableLogger.Dispose();
+            }
+        }
+
+        _disposed = true;
     }
 
     public ILogger Create(string name)

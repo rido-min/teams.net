@@ -117,4 +117,68 @@ public class AspNetCorePluginStreamTests
         Assert.Equal(StreamType.Informative, ((TypingActivity)sentActivity).ChannelData?.StreamType);
     }
 
+    [Fact]
+    public void Stream_Dispose_ShouldNotThrow()
+    {
+        // Arrange
+        var stream = new AspNetCorePlugin.Stream
+        {
+            Send = activity =>
+            {
+                activity.Id = "test-id";
+                return Task.FromResult(activity);
+            }
+        };
+
+        // Act & Assert - disposing should not throw
+        var exception = Record.Exception(() => stream.Dispose());
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void Stream_DoubleDispose_ShouldNotThrow()
+    {
+        // Arrange
+        var stream = new AspNetCorePlugin.Stream
+        {
+            Send = activity =>
+            {
+                activity.Id = "test-id";
+                return Task.FromResult(activity);
+            }
+        };
+
+        // Act & Assert - double dispose should not throw
+        var exception = Record.Exception(() =>
+        {
+            stream.Dispose();
+            stream.Dispose();
+        });
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task Stream_DisposeWithPendingTimer_ShouldNotThrow()
+    {
+        // Arrange
+        var stream = new AspNetCorePlugin.Stream
+        {
+            Send = activity =>
+            {
+                activity.Id = "test-id";
+                return Task.FromResult(activity);
+            }
+        };
+
+        // Emit to start timer
+        stream.Emit("Test message");
+        
+        // Act & Assert - disposing with pending timer should not throw
+        var exception = Record.Exception(() => stream.Dispose());
+        Assert.Null(exception);
+
+        // Wait a bit to ensure no callbacks fire
+        await Task.Delay(100);
+    }
+
 }

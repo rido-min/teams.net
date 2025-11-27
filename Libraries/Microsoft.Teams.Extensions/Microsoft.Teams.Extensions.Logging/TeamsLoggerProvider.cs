@@ -36,8 +36,23 @@ public class TeamsLoggerProvider : ILoggerProvider, IDisposable
         return _logger.Create(name);
     }
 
+    private bool _disposed;
+
     public void Dispose()
     {
-        _logger.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            _logger.Dispose();
+        }
+
+        _disposed = true;
     }
 }
