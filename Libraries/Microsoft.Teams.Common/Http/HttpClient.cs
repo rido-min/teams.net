@@ -24,6 +24,7 @@ public class HttpClient : IHttpClient
 
     protected System.Net.Http.HttpClient _client;
     protected ILogger _logger;
+    private bool _disposed;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
     {
@@ -76,10 +77,14 @@ public class HttpClient : IHttpClient
 
     protected virtual void Dispose(bool disposing)
     {
+        if (_disposed) return;
+
         if (disposing)
         {
             _client.Dispose();
         }
+
+        _disposed = true;
     }
 
     protected HttpRequestMessage CreateRequest(IHttpRequest request)
