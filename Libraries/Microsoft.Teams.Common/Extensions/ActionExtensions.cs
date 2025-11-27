@@ -53,10 +53,10 @@ public static class ActionExtensions
                     }
                     finally
                     {
-                        // Only dispose if this source hasn't been replaced by a new call
-                        // Use CompareExchange to safely dispose only if we're still the current source
-                        var currentSource = Interlocked.CompareExchange(ref cancelTokenSource, null, newSource);
-                        if (ReferenceEquals(currentSource, newSource))
+                        // Atomically try to set cancelTokenSource to null only if it's still newSource.
+                        // CompareExchange returns the original value, so if it returns newSource,
+                        // we successfully cleared it and should dispose.
+                        if (Interlocked.CompareExchange(ref cancelTokenSource, null, newSource) == newSource)
                         {
                             newSource.Dispose();
                         }
@@ -112,10 +112,10 @@ public static class ActionExtensions
                     }
                     finally
                     {
-                        // Only dispose if this source hasn't been replaced by a new call
-                        // Use CompareExchange to safely dispose only if we're still the current source
-                        var currentSource = Interlocked.CompareExchange(ref cancelTokenSource, null, newSource);
-                        if (ReferenceEquals(currentSource, newSource))
+                        // Atomically try to set cancelTokenSource to null only if it's still newSource.
+                        // CompareExchange returns the original value, so if it returns newSource,
+                        // we successfully cleared it and should dispose.
+                        if (Interlocked.CompareExchange(ref cancelTokenSource, null, newSource) == newSource)
                         {
                             newSource.Dispose();
                         }
