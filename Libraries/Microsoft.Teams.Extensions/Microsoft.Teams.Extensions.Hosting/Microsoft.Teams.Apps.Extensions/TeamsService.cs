@@ -38,7 +38,7 @@ public class TeamsService : IHostedLifecycleService
     public Task StoppingAsync(CancellationToken cancellationToken)
     {
         _logger.LogDebug("Stopping");
-        var src = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var src = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         src.Cancel();
         return Task.CompletedTask;
     }

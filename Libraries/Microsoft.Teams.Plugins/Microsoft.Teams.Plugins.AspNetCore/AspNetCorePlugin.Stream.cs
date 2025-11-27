@@ -14,7 +14,11 @@ namespace Microsoft.Teams.Plugins.AspNetCore;
 
 public partial class AspNetCorePlugin
 {
-    public class Stream : IStreamer
+    /// <summary>
+    /// A stream implementation that manages the sending of chunked activities.
+    /// Implements IDisposable to properly clean up the Timer and SemaphoreSlim resources.
+    /// </summary>
+    public class Stream : IStreamer, IDisposable
     {
         public bool Closed => _closedAt is not null;
         public int Count => _count;
@@ -36,6 +40,7 @@ public partial class AspNetCorePlugin
         private MessageActivity? _result;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private Timer? _timeout;
+        private bool _disposed;
 
         public void Emit(MessageActivity activity)
         {
@@ -207,6 +212,33 @@ public partial class AspNetCorePlugin
             {
                 _lock.Release();
             }
+        }
+
+        /// <summary>
+        /// Releases all resources used by the Stream.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by the Stream and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                _timeout?.Dispose();
+                _timeout = null;
+                _lock.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }

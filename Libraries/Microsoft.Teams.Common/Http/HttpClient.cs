@@ -70,7 +70,16 @@ public class HttpClient : IHttpClient
 
     public void Dispose()
     {
-        _client.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _client.Dispose();
+        }
     }
 
     protected HttpRequestMessage CreateRequest(IHttpRequest request)
