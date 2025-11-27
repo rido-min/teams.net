@@ -15,6 +15,7 @@ public static class ActionExtensions
     /// <returns>A debounced action.</returns>
     /// <remarks>
     /// The CancellationTokenSource is properly disposed when cancelled or when the debounce completes.
+    /// Uses Interlocked.Exchange for thread-safe source replacement.
     /// </remarks>
     public static Action<T> Debounce<T>(this Action<T> func, int milliseconds = 300)
     {
@@ -22,12 +23,22 @@ public static class ActionExtensions
 
         return arg =>
         {
-            var previousSource = cancelTokenSource;
-            previousSource?.Cancel();
-            previousSource?.Dispose();
-            
             var newSource = new CancellationTokenSource();
-            cancelTokenSource = newSource;
+            var previousSource = Interlocked.Exchange(ref cancelTokenSource, newSource);
+            
+            // Cancel and dispose the previous source safely
+            if (previousSource != null)
+            {
+                try
+                {
+                    previousSource.Cancel();
+                }
+                finally
+                {
+                    previousSource.Dispose();
+                }
+            }
+            
             var currentToken = newSource.Token;
 
             Task.Delay(milliseconds, currentToken)
@@ -43,10 +54,11 @@ public static class ActionExtensions
                     finally
                     {
                         // Only dispose if this source hasn't been replaced by a new call
-                        if (ReferenceEquals(cancelTokenSource, newSource))
+                        // Use CompareExchange to safely dispose only if we're still the current source
+                        var currentSource = Interlocked.CompareExchange(ref cancelTokenSource, null, newSource);
+                        if (ReferenceEquals(currentSource, newSource))
                         {
                             newSource.Dispose();
-                            cancelTokenSource = null;
                         }
                     }
                 }, TaskScheduler.Default);
@@ -62,6 +74,7 @@ public static class ActionExtensions
     /// <returns>A debounced action.</returns>
     /// <remarks>
     /// The CancellationTokenSource is properly disposed when cancelled or when the debounce completes.
+    /// Uses Interlocked.Exchange for thread-safe source replacement.
     /// </remarks>
     public static Action Debounce(this Func<Task> func, int milliseconds = 300)
     {
@@ -69,12 +82,22 @@ public static class ActionExtensions
 
         return () =>
         {
-            var previousSource = cancelTokenSource;
-            previousSource?.Cancel();
-            previousSource?.Dispose();
-            
             var newSource = new CancellationTokenSource();
-            cancelTokenSource = newSource;
+            var previousSource = Interlocked.Exchange(ref cancelTokenSource, newSource);
+            
+            // Cancel and dispose the previous source safely
+            if (previousSource != null)
+            {
+                try
+                {
+                    previousSource.Cancel();
+                }
+                finally
+                {
+                    previousSource.Dispose();
+                }
+            }
+            
             var currentToken = newSource.Token;
 
             Task.Delay(milliseconds, currentToken)
@@ -90,10 +113,11 @@ public static class ActionExtensions
                     finally
                     {
                         // Only dispose if this source hasn't been replaced by a new call
-                        if (ReferenceEquals(cancelTokenSource, newSource))
+                        // Use CompareExchange to safely dispose only if we're still the current source
+                        var currentSource = Interlocked.CompareExchange(ref cancelTokenSource, null, newSource);
+                        if (ReferenceEquals(currentSource, newSource))
                         {
                             newSource.Dispose();
-                            cancelTokenSource = null;
                         }
                     }
                 }, TaskScheduler.Default);

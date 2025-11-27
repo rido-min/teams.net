@@ -127,12 +127,14 @@ public partial class AspNetCorePlugin
 
         protected async Task Flush()
         {
-            if (_queue.Count == 0) return;
+            if (_disposed || _queue.Count == 0) return;
 
             await _lock.WaitAsync();
 
             try
             {
+                if (_disposed) return; // Check again after acquiring lock
+                
                 if (_timeout != null)
                 {
                     _timeout.Dispose();

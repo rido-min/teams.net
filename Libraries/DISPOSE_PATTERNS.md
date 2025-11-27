@@ -75,11 +75,15 @@ public class MyDisposableClass : IDisposable
    using var cts = new CancellationTokenSource();
    ```
 
-5. **Dispose replaced resources** when replacing disposable fields:
+5. **Dispose replaced resources thread-safely** when replacing disposable fields:
    ```csharp
-   var previous = _field;
-   previous?.Dispose();
-   _field = new Resource();
+   var newSource = new CancellationTokenSource();
+   var previousSource = Interlocked.Exchange(ref cancelTokenSource, newSource);
+   if (previousSource != null)
+   {
+       try { previousSource.Cancel(); }
+       finally { previousSource.Dispose(); }
+   }
    ```
 
 6. **Handle async completion cleanup** - for long-running or async operations that create disposable resources:
