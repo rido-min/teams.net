@@ -26,15 +26,28 @@ public static class ActionExtensions
             previousSource?.Cancel();
             previousSource?.Dispose();
             
-            cancelTokenSource = new CancellationTokenSource();
-            var currentToken = cancelTokenSource.Token;
+            var newSource = new CancellationTokenSource();
+            cancelTokenSource = newSource;
+            var currentToken = newSource.Token;
 
             Task.Delay(milliseconds, currentToken)
                 .ContinueWith(t =>
                 {
-                    if (t.Status == TaskStatus.RanToCompletion)
+                    try
                     {
-                        func(arg);
+                        if (t.Status == TaskStatus.RanToCompletion)
+                        {
+                            func(arg);
+                        }
+                    }
+                    finally
+                    {
+                        // Only dispose if this source hasn't been replaced by a new call
+                        if (ReferenceEquals(cancelTokenSource, newSource))
+                        {
+                            newSource.Dispose();
+                            cancelTokenSource = null;
+                        }
                     }
                 }, TaskScheduler.Default);
         };
@@ -60,15 +73,28 @@ public static class ActionExtensions
             previousSource?.Cancel();
             previousSource?.Dispose();
             
-            cancelTokenSource = new CancellationTokenSource();
-            var currentToken = cancelTokenSource.Token;
+            var newSource = new CancellationTokenSource();
+            cancelTokenSource = newSource;
+            var currentToken = newSource.Token;
 
             Task.Delay(milliseconds, currentToken)
                 .ContinueWith(async t =>
                 {
-                    if (t.Status == TaskStatus.RanToCompletion)
+                    try
                     {
-                        await func();
+                        if (t.Status == TaskStatus.RanToCompletion)
+                        {
+                            await func();
+                        }
+                    }
+                    finally
+                    {
+                        // Only dispose if this source hasn't been replaced by a new call
+                        if (ReferenceEquals(cancelTokenSource, newSource))
+                        {
+                            newSource.Dispose();
+                            cancelTokenSource = null;
+                        }
                     }
                 }, TaskScheduler.Default);
         };

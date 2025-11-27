@@ -82,6 +82,24 @@ public class MyDisposableClass : IDisposable
    _field = new Resource();
    ```
 
+6. **Handle async completion cleanup** - for long-running or async operations that create disposable resources:
+   ```csharp
+   var source = new CancellationTokenSource();
+   Task.Delay(delay, source.Token)
+       .ContinueWith(t =>
+       {
+           try
+           {
+               // Do work if not cancelled
+           }
+           finally
+           {
+               // Dispose when done or cancelled
+               source.Dispose();
+           }
+       });
+   ```
+
 ### Common Disposable Types to Watch For
 
 - `HttpClient` / `HttpMessageHandler`
