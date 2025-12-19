@@ -11,7 +11,7 @@ The Teams.NET Core framework provides a lightweight, modern .NET implementation 
 ```mermaid
 graph TB
     subgraph "HTTP"
-        HTTP[HTTP Request<br/>api/messages]
+        HTTPReq[HTTP Request<br/>api/messages]
     end
     
     subgraph "Bot Application"
@@ -40,7 +40,7 @@ graph TB
         MSAL[Token Acquisition<br/>MSAL]
     end
     
-    HTTP --> BA
+    HTTPReq --> BA
     BA --> MW
     MW --> Handler
     Handler --> Activity
@@ -51,7 +51,7 @@ graph TB
     AuthHandler --> MSAL
     AuthHandler --> HTTPClient
     HTTPClient --> ServiceURL[activity.ServiceUrl<br/>v3/conversations]
-    JWT -.validates.-> HTTP
+    JWT -.validates.-> HTTPReq
 ```
 
 ## HTTP Request Flow (Receiving Messages)
