@@ -10,26 +10,26 @@ The Teams.NET Core framework provides a lightweight, modern .NET implementation 
 
 ```mermaid
 graph TB
-    subgraph "HTTP Layer"
+    subgraph "HTTP"
         HTTP[HTTP Request<br/>api/messages]
     end
     
-    subgraph "Bot Application Layer"
+    subgraph "Bot Application"
         BA[BotApplication]
         MW[Middleware Pipeline<br/>TurnMiddleware]
         Handler[OnActivity Handler]
-    end
-    
-    subgraph "Schema Layer"
-        Activity[CoreActivity]
-        Conv[Conversation]
-        Account[ConversationAccount]
-    end
-    
-    subgraph "Communication Layer"
-        CC[ConversationClient]
-        AuthHandler[BotAuthenticationHandler]
-        HTTPClient[HttpClient]
+        
+        subgraph "Schema"
+            Activity[CoreActivity]
+            Conv[Conversation]
+            Account[ConversationAccount]
+        end
+        
+        subgraph "Communication"
+            CC[ConversationClient]
+            AuthHandler[BotAuthenticationHandler]
+            HTTPClient[HttpClient]
+        end
     end
     
     subgraph "Authorization"
