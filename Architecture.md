@@ -1,10 +1,10 @@
-# Teams.NET Core Architecture
+# Microsoft.Bot.Core Architecture
 
 This document describes the architecture of the Teams.NET Core bot framework located in the `core/` folder (from the `next/core` branch).
 
 ## Overview
 
-The Teams.NET Core framework provides a lightweight, modern .NET implementation for building bot applications that communicate with Microsoft Bot Framework and Teams services. The architecture focuses on receiving HTTP activity requests and sending responses back to conversation endpoints.
+The Microsoft.Bot.Core framework provides a lightweight, modern .NET implementation for building bot applications that communicate with Microsoft Bot Framework and Teams services. The architecture focuses on receiving HTTP activity requests and sending responses back to conversation endpoints.
 
 ## Main Components
 
