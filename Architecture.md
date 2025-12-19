@@ -32,8 +32,11 @@ graph TB
         HTTPClient[HttpClient]
     end
     
-    subgraph "Authentication"
+    subgraph "Authorization"
         JWT[JWT Validation]
+    end
+    
+    subgraph "Authentication"
         MSAL[Token Acquisition<br/>MSAL]
     end
     
