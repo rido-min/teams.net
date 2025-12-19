@@ -95,9 +95,9 @@ sequenceDiagram
     participant Handler as OnActivity Handler
     participant BotApp as BotApplication
     participant ConvClient as ConversationClient
+    participant HTTPClient as HttpClient
     participant AuthHandler as BotAuthenticationHandler
     participant MSAL as Token Acquisition<br/>(MSAL)
-    participant HTTPClient as HttpClient
     participant ServiceURL as activity.ServiceUrl<br/>/v3/conversations/{id}/activities
     
     Handler->>BotApp: SendActivityAsync(activity)
