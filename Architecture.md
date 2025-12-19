@@ -30,14 +30,14 @@ graph TB
             AuthHandler[BotAuthenticationHandler]
             HTTPClient[HttpClient]
         end
+        
+        subgraph "Authentication"
+            MSAL[Token Acquisition<br/>MSAL]
+        end
     end
     
     subgraph "Authorization"
         JWT[JWT Validation]
-    end
-    
-    subgraph "Authentication"
-        MSAL[Token Acquisition<br/>MSAL]
     end
     
     HTTPReq --> BA
