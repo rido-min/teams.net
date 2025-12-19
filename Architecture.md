@@ -141,35 +141,46 @@ graph LR
     style End fill:#87CEEB
 ```
 
-## Authentication Flow
+## Inbound Authentication Flow
+
+This diagram shows how incoming HTTP requests are authenticated using JWT tokens.
 
 ```mermaid
 graph TB
-    subgraph "Inbound Authentication"
-        InReq[Incoming HTTP Request] --> JWTVal[JWT Validation]
-        JWTVal --> IssuerCheck{Issuer?}
-        IssuerCheck -->|BotFramework| BotOIDC[Bot Framework OIDC]
-        IssuerCheck -->|Azure AD| AadOIDC[Azure AD OIDC]
-        BotOIDC --> ValidateToken[Validate Token]
-        AadOIDC --> ValidateToken
-        ValidateToken --> Authorized[Authorized Request]
-    end
+    InReq[Incoming HTTP Request] --> JWTVal[JWT Validation]
+    JWTVal --> IssuerCheck{Issuer?}
+    IssuerCheck -->|BotFramework| BotOIDC[Bot Framework OIDC]
+    IssuerCheck -->|Azure AD| AadOIDC[Azure AD OIDC]
+    BotOIDC --> ValidateToken[Validate Token]
+    AadOIDC --> ValidateToken
+    ValidateToken --> Authorized[Authorized Request]
     
-    subgraph "Outbound Authentication"
-        OutReq[Outgoing HTTP Request] --> IdentityCheck{Identity Type?}
-        IdentityCheck -->|Agentic| UserToken[User-Delegated Token<br/>OBO Flow]
-        IdentityCheck -->|App-only| AppToken[App-only Token<br/>Client Credentials]
-        UserToken --> MSALToken[MSAL Token Acquisition]
-        AppToken --> MSALToken
-        MSALToken --> CredCheck{Credential Type?}
-        CredCheck -->|Secret| ClientSecret[Client Secret]
-        CredCheck -->|Managed Identity| UMI[User Assigned MI]
-        CredCheck -->|FIC| FIC[Federated Identity]
-        ClientSecret --> AddAuthHeader[Add Authorization Header]
-        UMI --> AddAuthHeader
-        FIC --> AddAuthHeader
-        AddAuthHeader --> SendReq[Send Request to ServiceUrl]
-    end
+    style InReq fill:#87CEEB
+    style Authorized fill:#90EE90
+```
+
+## Outbound Authentication Flow
+
+This diagram shows how the bot authenticates when sending messages to the Bot Framework service.
+
+```mermaid
+graph TB
+    OutReq[Outgoing HTTP Request] --> IdentityCheck{Identity Type?}
+    IdentityCheck -->|Agentic| UserToken[User-Delegated Token<br/>OBO Flow]
+    IdentityCheck -->|App-only| AppToken[App-only Token<br/>Client Credentials]
+    UserToken --> MSALToken[MSAL Token Acquisition]
+    AppToken --> MSALToken
+    MSALToken --> CredCheck{Credential Type?}
+    CredCheck -->|Secret| ClientSecret[Client Secret]
+    CredCheck -->|Managed Identity| UMI[User Assigned MI]
+    CredCheck -->|FIC| FIC[Federated Identity]
+    ClientSecret --> AddAuthHeader[Add Authorization Header]
+    UMI --> AddAuthHeader
+    FIC --> AddAuthHeader
+    AddAuthHeader --> SendReq[Send Request to ServiceUrl]
+    
+    style OutReq fill:#87CEEB
+    style SendReq fill:#90EE90
 ```
 
 ## Key Components Description
