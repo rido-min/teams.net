@@ -44,10 +44,17 @@ namespace Microsoft.Teams.Bot.Core.Hosting
 
             AuthenticationBuilder builder = services.AddAuthentication();
             ArgumentNullException.ThrowIfNull(configuration);
-            string audience = configuration[$"{aadSectionName}:ClientId"]
+            
+            // Check if authentication configuration exists
+            string? audience = configuration[$"{aadSectionName}:ClientId"]
                    ?? configuration["CLIENT_ID"]
-                   ?? configuration["MicrosoftAppId"]
-                   ?? throw new InvalidOperationException("ClientID not found in configuration, tried the 3 option");
+                   ?? configuration["MicrosoftAppId"];
+                   
+            if (string.IsNullOrEmpty(audience))
+            {
+                _logAuthConfigNotFound(logger, null);
+                return builder; // Return without configuring JWT authentication
+            }
 
             if (!useAgentAuth)
             {
@@ -77,7 +84,7 @@ namespace Microsoft.Teams.Bot.Core.Hosting
         public static AuthorizationBuilder AddAuthorization(this IServiceCollection services, ILogger logger, string aadSectionName = "AzureAd")
         {
             IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-            string azureScope = configuration[$"Scope"]!;
+            string? azureScope = configuration["Scope"];
             bool useAgentAuth = false;
 
             if (string.Equals(azureScope, AgentScope, StringComparison.OrdinalIgnoreCase))
@@ -85,20 +92,40 @@ namespace Microsoft.Teams.Bot.Core.Hosting
                 useAgentAuth = true;
             }
 
-            services.AddBotAuthentication(configuration, useAgentAuth, logger, aadSectionName);
+            // Check if authentication configuration exists
+            string? audience = configuration[$"{aadSectionName}:ClientId"]
+                   ?? configuration["CLIENT_ID"]
+                   ?? configuration["MicrosoftAppId"];
+
+            bool hasAuthConfig = !string.IsNullOrEmpty(audience);
+            
+            if (hasAuthConfig)
+            {
+                services.AddBotAuthentication(configuration, useAgentAuth, logger, aadSectionName);
+            }
+
             AuthorizationBuilder authorizationBuilder = services
                 .AddAuthorizationBuilder()
                 .AddDefaultPolicy("DefaultPolicy", policy =>
                 {
-                    if (!useAgentAuth)
+                    if (!hasAuthConfig)
                     {
-                        policy.AuthenticationSchemes.Add(BotScheme);
+                        // Anonymous mode - allow all requests
+                        _logAnonymousMode(logger, null);
+                        policy.RequireAssertion(_ => true);
                     }
                     else
                     {
-                        policy.AuthenticationSchemes.Add(AgentScheme);
+                        if (!useAgentAuth)
+                        {
+                            policy.AuthenticationSchemes.Add(BotScheme);
+                        }
+                        else
+                        {
+                            policy.AuthenticationSchemes.Add(AgentScheme);
+                        }
+                        policy.RequireAuthenticatedUser();
                     }
-                    policy.RequireAuthenticatedUser();
                 });
             return authorizationBuilder;
         }
@@ -186,5 +213,10 @@ namespace Microsoft.Teams.Bot.Core.Hosting
             });
             return builder;
         }
+
+        private static readonly Action<ILogger, Exception?> _logAuthConfigNotFound =
+            LoggerMessage.Define(LogLevel.Warning, new(1), "Authentication configuration not found. JWT validation disabled (anonymous mode)");
+        private static readonly Action<ILogger, Exception?> _logAnonymousMode =
+            LoggerMessage.Define(LogLevel.Information, new(2), "Running in anonymous mode - authorization bypassed");
     }
 }

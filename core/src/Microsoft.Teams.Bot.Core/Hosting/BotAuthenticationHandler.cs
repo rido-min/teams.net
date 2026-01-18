@@ -18,24 +18,29 @@ namespace Microsoft.Teams.Bot.Core.Hosting;
 /// <remarks>
 /// Initializes a new instance of the <see cref="BotAuthenticationHandler"/> class.
 /// </remarks>
-/// <param name="authorizationHeaderProvider">The authorization header provider for acquiring tokens.</param>
+/// <param name="authorizationHeaderProvider">The authorization header provider for acquiring tokens. Can be null when authentication is not configured.</param>
 /// <param name="logger">The logger instance.</param>
 /// <param name="scope">The scope for the token request.</param>
+/// <param name="isAuthenticationConfigured">Indicates whether authentication is configured. When false, the handler operates in anonymous mode.</param>
 /// <param name="managedIdentityOptions">Optional managed identity options for user-assigned managed identity authentication.</param>
 internal sealed class BotAuthenticationHandler(
-    IAuthorizationHeaderProvider authorizationHeaderProvider,
+    IAuthorizationHeaderProvider? authorizationHeaderProvider,
     ILogger<BotAuthenticationHandler> logger,
     string scope,
+    bool isAuthenticationConfigured = true,
     IOptions<ManagedIdentityOptions>? managedIdentityOptions = null) : DelegatingHandler
 {
-    private readonly IAuthorizationHeaderProvider _authorizationHeaderProvider = authorizationHeaderProvider ?? throw new ArgumentNullException(nameof(authorizationHeaderProvider));
+    private readonly IAuthorizationHeaderProvider? _authorizationHeaderProvider = authorizationHeaderProvider;
     private readonly ILogger<BotAuthenticationHandler> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly string _scope = scope ?? throw new ArgumentNullException(nameof(scope));
+    private readonly bool _isAuthenticationConfigured = isAuthenticationConfigured;
     private readonly IOptions<ManagedIdentityOptions>? _managedIdentityOptions = managedIdentityOptions;
     private static readonly Action<ILogger, string, Exception?> _logAgenticToken =
         LoggerMessage.Define<string>(LogLevel.Debug, new(2), "Acquiring agentic token for app {AgenticAppId}");
     private static readonly Action<ILogger, string, Exception?> _logAppOnlyToken =
         LoggerMessage.Define<string>(LogLevel.Debug, new(3), "Acquiring app-only token for scope: {Scope}");
+    private static readonly Action<ILogger, Exception?> _logAnonymousMode =
+        LoggerMessage.Define(LogLevel.Debug, new(1), "Authentication not configured, proceeding without authorization header (anonymous mode)");
 
     /// <summary>
     /// Key used to store the agentic identity in HttpRequestMessage options.
@@ -45,6 +50,12 @@ internal sealed class BotAuthenticationHandler(
     /// <inheritdoc/>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        if (!_isAuthenticationConfigured)
+        {
+            _logAnonymousMode(_logger, null);
+            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
         request.Options.TryGetValue(AgenticIdentityKey, out AgenticIdentity? agenticIdentity);
 
         string token = await GetAuthorizationHeaderAsync(agenticIdentity, cancellationToken).ConfigureAwait(false);
@@ -67,6 +78,11 @@ internal sealed class BotAuthenticationHandler(
     /// <returns>The authorization header value.</returns>
     private async Task<string> GetAuthorizationHeaderAsync(AgenticIdentity? agenticIdentity, CancellationToken cancellationToken)
     {
+        if (_authorizationHeaderProvider is null)
+        {
+            throw new InvalidOperationException("Authorization header provider is not available. This method should not be called when authentication is not configured.");
+        }
+
         AuthorizationHeaderProviderOptions options = new()
         {
             AcquireTokenOptions = new AcquireTokenOptions()

@@ -38,6 +38,7 @@ public static class TeamsBotApplicationHostingExtensions
                     sp.GetRequiredService<IAuthorizationHeaderProvider>(),
                     sp.GetRequiredService<ILogger<BotAuthenticationHandler>>(),
                     scope,
+                    true, // isAuthenticationConfigured - this is for Teams API client which should always have auth
                     sp.GetService<IOptions<ManagedIdentityOptions>>()));
 
         services.AddBotApplication<TeamsBotApplication>();

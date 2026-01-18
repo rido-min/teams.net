@@ -118,12 +118,20 @@ public static class AddBotApplicationExtensions
                     sp.GetRequiredService<IAuthorizationHeaderProvider>(),
                     sp.GetRequiredService<ILogger<BotAuthenticationHandler>>(),
                     scope,
+                    isAuthenticationConfigured: true,
                     sp.GetService<IOptions<ManagedIdentityOptions>>()));
         }
         else
         {
             _logAuthConfigNotFound(logger, null);
-            services.AddHttpClient<TClient>(httpClientName);
+            services.AddHttpClient<TClient>(httpClientName)
+                .AddHttpMessageHandler(sp =>
+                new BotAuthenticationHandler(
+                    authorizationHeaderProvider: null,
+                    sp.GetRequiredService<ILogger<BotAuthenticationHandler>>(),
+                    scope,
+                    isAuthenticationConfigured: false,
+                    managedIdentityOptions: null));
         }
 
         return services;
@@ -138,20 +146,47 @@ public static class AddBotApplicationExtensions
         {
             _logUsingBFConfig(logger, null);
             BotConfig botConfig = BotConfig.FromBFConfig(configuration);
-            services.ConfigureMSALFromBotConfig(botConfig, logger);
+            if (IsValidBotConfig(botConfig))
+            {
+                services.ConfigureMSALFromBotConfig(botConfig, logger);
+                return true;
+            }
         }
         else if (configuration["CLIENT_ID"] is not null)
         {
             _logUsingCoreConfig(logger, null);
             BotConfig botConfig = BotConfig.FromCoreConfig(configuration);
-            services.ConfigureMSALFromBotConfig(botConfig, logger);
+            if (IsValidBotConfig(botConfig))
+            {
+                services.ConfigureMSALFromBotConfig(botConfig, logger);
+                return true;
+            }
         }
         else
         {
-            _logUsingSectionConfig(logger, sectionName, null);
-            services.ConfigureMSALFromConfig(configuration.GetSection(sectionName));
+            var section = configuration.GetSection(sectionName);
+            if (section.Exists() && HasValidConfiguration(section))
+            {
+                _logUsingSectionConfig(logger, sectionName, null);
+                services.ConfigureMSALFromConfig(section);
+                return true;
+            }
         }
-        return true;
+        
+        return false;
+    }
+
+    private static bool IsValidBotConfig(BotConfig botConfig)
+    {
+        return !string.IsNullOrEmpty(botConfig.ClientId) && !string.IsNullOrEmpty(botConfig.TenantId);
+    }
+
+    private static bool HasValidConfiguration(IConfigurationSection section)
+    {
+        string? clientId = section["ClientId"];
+        string? tenantId = section["TenantId"];
+        
+        return !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(tenantId);
     }
 
     private static IServiceCollection ConfigureMSALFromConfig(this IServiceCollection services, IConfigurationSection msalConfigSection)
