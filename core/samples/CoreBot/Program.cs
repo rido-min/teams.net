@@ -16,8 +16,7 @@ webApp.MapGet("/", () => $"CoreBot is running on SDK {BotApplication.Version}.")
 
 botApp.OnActivity = async (activity, cancellationToken) =>
 {
-    string replyText = $"CoreBot running on SDK {BotApplication.Version}.";
-    replyText += $"<br /> Received Activity `{activity.Type}`.";
+    string replyText = $"Received Activity `{activity.Type}`.";
 
     CoreActivity replyActivity = CoreActivity.CreateBuilder()
         .WithType(ActivityType.Message)
