@@ -50,6 +50,7 @@ public class CloudEnvironment
     /// </summary>
     public IReadOnlyList<string> AllowedServiceUrls { get; }
 
+
     public CloudEnvironment(
         string loginEndpoint,
         string loginTenant,

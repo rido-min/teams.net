@@ -43,6 +43,7 @@ public partial class App
 
     private readonly IEnumerable<string>? _additionalAllowedDomains;
     private readonly CloudEnvironment _cloud;
+
     internal string UserAgent
     {
         get
