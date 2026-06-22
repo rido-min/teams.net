@@ -30,24 +30,13 @@ public class EndOfConversationActivity() : Activity(ActivityType.EndOfConversati
     public required string Text { get; set; }
 }
 
-[JsonConverter(typeof(JsonConverter<EndOfConversationCode>))]
-public class EndOfConversationCode(string value) : StringEnum(value)
+[JsonConverter(typeof(CamelCaseEnumConverter<EndOfConversationCode>))]
+public enum EndOfConversationCode
 {
-    public static readonly EndOfConversationCode Unknown = new("unknown");
-    public bool IsUnknown => Unknown.Equals(Value);
-
-    public static readonly EndOfConversationCode CompletedSuccessfully = new("completedSuccessfully");
-    public bool IsCompletedSuccessfully => CompletedSuccessfully.Equals(Value);
-
-    public static readonly EndOfConversationCode UserCancelled = new("userCancelled");
-    public bool IsUserCancelled => UserCancelled.Equals(Value);
-
-    public static readonly EndOfConversationCode BotTimedOut = new("botTimedOut");
-    public bool IsBotTimedOut => BotTimedOut.Equals(Value);
-
-    public static readonly EndOfConversationCode BotIssuedInvalidMessage = new("botIssuedInvalidMessage");
-    public bool IsBotIssuedInvalidMessage => BotIssuedInvalidMessage.Equals(Value);
-
-    public static readonly EndOfConversationCode ChannelFailed = new("channelFailed");
-    public bool IsChannelFailed => ChannelFailed.Equals(Value);
+    Unknown,
+    CompletedSuccessfully,
+    UserCancelled,
+    BotTimedOut,
+    BotIssuedInvalidMessage,
+    ChannelFailed
 }

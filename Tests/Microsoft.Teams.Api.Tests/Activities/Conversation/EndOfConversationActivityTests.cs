@@ -12,7 +12,7 @@ public class EndOfConversationActivityTests
     {
         return new EndOfConversationActivity()
         {
-            Code = new EndOfConversationCode("completedSuccessfully"),
+            Code = EndOfConversationCode.CompletedSuccessfully,
             Text = "The conversation has ended successfully.",
             ChannelId = new ChannelId("msteams"),
             Conversation = new Api.Conversation()
